@@ -1,0 +1,53 @@
+{
+  "story_id": "US-BUDGET",
+  "state": "ESCALATED",
+  "revision": 18,
+  "candidate_sha": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+  "baselines": {
+    "spec": "SPEC-003",
+    "contract": "API-002",
+    "test": "TEST-US-012-004",
+    "ui": "UI-002",
+    "policy": "POLICY-001"
+  },
+  "baseline_manifest_sha256": "41a885c337a3e96ee1784ebaacaf5f40d85ab73820c39328ec553faef840b04c",
+  "active_run_id": "RUN-US-012-P5-001",
+  "risk_level": "HIGH",
+  "functional_attempts": 1,
+  "infrastructure_attempts": 0,
+  "review": {
+    "limit": 9,
+    "used": 5,
+    "delta_used": 0,
+    "full_rereview_used": 0,
+    "last_reviewed_sha": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+  },
+  "budget": {
+    "currency": "USD",
+    "limit": 5.0,
+    "spent": 4.0,
+    "reserved": 0.8
+  },
+  "gates": {
+    "G1": {
+      "status": "PASS",
+      "evidence_id": "EV-G1-003"
+    },
+    "G2": {
+      "status": "PASS",
+      "evidence_id": "EV-G2-002"
+    },
+    "G3": {
+      "status": "PASS",
+      "evidence_id": "EV-G3-017",
+      "candidate_sha": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+    },
+    "G4": {
+      "status": "PENDING"
+    },
+    "G5": {
+      "status": "PENDING"
+    }
+  },
+  "escalation_reason": "BUDGET_EXCEEDED: Budget limit 5.0 USD exceeded."
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI-Agent V2.1 Change Request Schema (Appendix C)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "task_id",
+    "type",
+    "target_owner",
+    "baseline",
+    "reference",
+    "problem",
+    "evidence",
+    "proposed_action",
+    "blocked_tasks"
+  ],
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "pattern": "^CR-[A-Z0-9-]+$"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "enum": [
+        "SPEC_QUESTION",
+        "SPEC_CHANGE",
+        "API_CONTRACT_CHANGE",
+        "TEST_BASELINE_CHANGE",
+        "UI_DESIGN_SYSTEM_CHANGE",
+        "DEPENDENCY_PROPOSAL"
+      ]
+    },
+    "target_owner": {
+      "enum": ["BA", "Architect", "Tester", "TechLead", "PO"]
+    },
+    "baseline": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 1
+    },
+    "problem": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "proposed_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "blocked_tasks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

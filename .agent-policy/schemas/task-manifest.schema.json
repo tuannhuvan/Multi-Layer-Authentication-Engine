@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI-Agent V2.1 Task & Context Manifest Schema (Section 5)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "identity",
+    "versions",
+    "scope",
+    "context",
+    "tools",
+    "limits",
+    "expected_output"
+  ],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "required": ["task_id", "story_id", "phase", "role", "risk_level"],
+      "properties": {
+        "task_id": { "type": "string", "minLength": 1 },
+        "story_id": { "type": "string", "minLength": 1 },
+        "phase": { "enum": ["P0", "P1", "P2", "P3", "P4", "P5", "P6"] },
+        "role": {
+          "enum": [
+            "BA",
+            "Architect",
+            "Tester",
+            "BE_Dev",
+            "FE_Dev",
+            "DevOps",
+            "Biz_Reviewer",
+            "Sec_Reviewer",
+            "Controller"
+          ]
+        },
+        "risk_level": { "enum": ["NORMAL", "MEDIUM", "HIGH"] }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "required": [
+        "base_commit",
+        "spec_baseline",
+        "contract_baseline",
+        "test_baseline",
+        "policy_version"
+      ],
+      "properties": {
+        "base_commit": { "type": "string", "minLength": 7 },
+        "spec_baseline": { "type": "string" },
+        "contract_baseline": { "type": "string" },
+        "test_baseline": { "type": "string" },
+        "ui_baseline": { "type": "string" },
+        "policy_version": { "type": "string" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": ["readable_paths", "writable_paths", "locked_resources"],
+      "properties": {
+        "readable_paths": { "type": "array", "items": { "type": "string" } },
+        "writable_paths": { "type": "array", "items": { "type": "string" } },
+        "locked_resources": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "context": {
+      "type": "object",
+      "required": ["stories", "business_rules", "invariants"],
+      "properties": {
+        "stories": { "type": "array", "items": { "type": "string" } },
+        "business_rules": { "type": "array", "items": { "type": "string" } },
+        "adrs": { "type": "array", "items": { "type": "string" } },
+        "apis": { "type": "array", "items": { "type": "string" } },
+        "invariants": {
+          "type": "object",
+          "properties": {
+            "unit_scope": { "type": "string" },
+            "authorization_tier": { "type": "string" },
+            "evaluation_period": { "type": "string" },
+            "rounding_rule": { "type": "string" },
+            "timezone": { "type": "string" },
+            "audit_required": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "required": ["runtime_version", "model_id", "allowed_tools", "policy_file"],
+      "properties": {
+        "runtime_version": { "type": "string" },
+        "model_id": { "type": "string" },
+        "allowed_tools": { "type": "array", "items": { "type": "string" } },
+        "policy_file": { "type": "string" }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "required": [
+        "timeout_seconds",
+        "max_budget_usd",
+        "max_attempts",
+        "remaining_reviews",
+        "max_concurrency"
+      ],
+      "properties": {
+        "deadline": { "type": "string" },
+        "timeout_seconds": { "type": "integer", "minimum": 60 },
+        "max_budget_usd": { "type": "number", "minimum": 0 },
+        "max_attempts": { "type": "integer", "minimum": 1 },
+        "remaining_reviews": { "type": "integer", "minimum": 0 },
+        "max_concurrency": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "expected_output": {
+      "type": "object",
+      "required": ["required_artifacts", "output_schema", "mandatory_checks"],
+      "properties": {
+        "required_artifacts": { "type": "array", "items": { "type": "string" } },
+        "output_schema": { "type": "string" },
+        "mandatory_checks": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

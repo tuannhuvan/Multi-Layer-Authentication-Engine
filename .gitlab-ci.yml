@@ -1,0 +1,113 @@
+# GitLab CI/CD — Quy trình AI-Agent tự động hóa dự án phần mềm V2.1 (§14.3)
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # gồm merge train / merged result
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - when: never
+
+stages: [verify, test, security, review, package, deploy-staging, acceptance, release]
+
+default:
+  image: "$CI_POLICY_IMAGE" # image policy tin cậy, ghim bằng digest
+  tags: [ai-isolated]
+  timeout: 30m
+
+variables:
+  GIT_DEPTH: "0"
+
+.on-mr: &on-mr
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+.on-main: &on-main
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
+
+verify-inputs:
+  stage: verify
+  script:
+    - /opt/ai-policy/bin/verify-inputs --commit "$CI_COMMIT_SHA"
+  artifacts: { when: always, paths: [reports/input-manifest.json] }
+
+test:
+  stage: test
+  script:
+    - /opt/ai-policy/bin/run-tests --input reports/input-manifest.json
+  artifacts:
+    when: always
+    paths: [reports/tests/]
+    reports: { junit: reports/tests/junit/*.xml }
+
+security:
+  stage: security
+  script:
+    - /opt/ai-policy/bin/scan-source --input reports/input-manifest.json
+  artifacts: { when: always, paths: [reports/security/] }
+
+# Review LLM: CHỈ trên MR; Controller cấp lượt và chọn full/delta (§8)
+review-biz:
+  stage: review
+  <<: *on-mr
+  script:
+    - /opt/ai-policy/bin/run-review --role biz --commit "$CI_COMMIT_SHA" --mode auto --out reports/review-biz.json
+    - /opt/ai-policy/bin/validate-review --role biz --commit "$CI_COMMIT_SHA" --file reports/review-biz.json
+  artifacts: { when: always, paths: [reports/review-biz.json] }
+
+review-sec:
+  stage: review
+  <<: *on-mr
+  script:
+    - /opt/ai-policy/bin/run-review --role sec --commit "$CI_COMMIT_SHA" --mode auto --out reports/review-sec.json
+    - /opt/ai-policy/bin/validate-review --role sec --commit "$CI_COMMIT_SHA" --file reports/review-sec.json
+  artifacts: { when: always, paths: [reports/review-sec.json] }
+
+# Nhánh chính: không gọi LLM, chỉ đối chiếu evidence review của MR
+review-evidence:
+  stage: review
+  <<: *on-main
+  script:
+    - /opt/ai-policy/bin/verify-review-evidence --commit "$CI_COMMIT_SHA" --roles biz,sec
+  artifacts: { when: always, paths: [reports/review-evidence.json] }
+
+package:
+  stage: package
+  <<: *on-main
+  script:
+    - /opt/ai-policy/bin/package-candidate --commit "$CI_COMMIT_SHA" --out reports/image.json
+    - /opt/ai-policy/bin/scan-candidate --manifest reports/image.json
+  artifacts:
+    when: always
+    paths: [reports/image.json, reports/sbom.json, reports/provenance.json, reports/image-scan.json]
+    reports: { dotenv: reports/image.env }
+
+deploy-staging:
+  stage: deploy-staging
+  <<: *on-main
+  resource_group: app-staging
+  environment: { name: staging }
+  script:
+    - /opt/ai-policy/bin/deploy-staging --manifest reports/image.json
+  artifacts: { when: always, paths: [reports/staging-deploy.json] }
+
+acceptance-staging:
+  stage: acceptance
+  <<: *on-main
+  resource_group: app-staging
+  environment: { name: staging-test }
+  script:
+    - /opt/ai-policy/bin/verify-staging --image reports/image.json --deployment reports/staging-deploy.json
+  artifacts: { when: always, paths: [reports/staging/, reports/release-manifest.json] }
+
+release-production:
+  stage: release
+  resource_group: app-production
+  environment: { name: production } # protected environment: chỉ nhóm Release
+  interruptible: false
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
+      when: manual # đặt trong rule, không đặt ở cấp job
+      allow_failure: false
+  script:
+    - /opt/ai-policy/bin/deploy-production --manifest reports/release-manifest.json
+    - /opt/ai-policy/bin/verify-production --manifest reports/release-manifest.json
+  artifacts: { when: always, paths: [reports/production/] }

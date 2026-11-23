@@ -1,0 +1,20 @@
+{
+  "fixture_id": "FIX-US-012-001",
+  "story_id": "US-012",
+  "test_baseline": "TEST-US-012-004",
+  "teachers": [
+    {
+      "teacher_id": "GV-001",
+      "assigned_classes": ["10A1"],
+      "default_acr": "S2"
+    }
+  ],
+  "approvals": [
+    {
+      "approval_id": "CR-GRADE-001",
+      "class_id": "10A1",
+      "status": "PENDING_APPROVAL",
+      "required_acr": "S3"
+    }
+  ]
+}

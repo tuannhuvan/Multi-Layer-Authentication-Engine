@@ -1,0 +1,200 @@
+openapi: 3.0.3
+info:
+  title: AuthShield-LMS Multi-Layer Authentication & School Service API
+  version: "API-002"
+  description: |
+    Contract baseline API-002 cho quy trình AI-Agent V2.1.
+    Mọi lỗi nghiệp vụ và phân quyền đều trả về theo chuẩn RFC 9457 ProblemDetail.
+servers:
+  - url: http://localhost:8080
+    description: Local API Gateway / Contract Mocker Server
+paths:
+  /api/v1/grades/calculate:
+    post:
+      operationId: calculateSemesterGrade
+      summary: Tính điểm trung bình môn và xếp loại theo BR-031
+      tags: [Grades]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GradeCalculationRequest"
+      responses:
+        "200":
+          description: Kết quả tính điểm trung bình môn đã làm tròn HALF_UP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GradeCalculationResponse"
+        "400":
+          description: Dữ liệu đầu vào không hợp lệ
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/v1/classes/{classId}/grades:
+    put:
+      operationId: updateClassGrades
+      summary: Giáo viên cập nhật điểm lớp được phân công (Yêu cầu ACR >= S2)
+      tags: [Grades]
+      parameters:
+        - name: classId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Auth-ACR
+          in: header
+          required: true
+          schema:
+            type: string
+            enum: [S1, S2, S3]
+        - name: X-Assigned-Classes
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GradeCalculationRequest"
+      responses:
+        "200":
+          description: Cập nhật điểm thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GradeCalculationResponse"
+        "403":
+          description: Vi phạm phân quyền đơn vị (Anti-IDOR) hoặc thiếu cấp độ xác thực ACR
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/v1/grades/approvals/{approvalId}/sign:
+    post:
+      operationId: signGradeChangeApproval
+      summary: Ban Giám hiệu ký số S3 phê duyệt sửa điểm sau khóa sổ (Maker-Checker)
+      tags: [Approvals]
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Auth-ACR
+          in: header
+          required: true
+          schema:
+            type: string
+            enum: [S1, S2, S3]
+      responses:
+        "200":
+          description: Đã ký số S3 và phê duyệt thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalSignResponse"
+        "403":
+          description: Yêu cầu xác thực cấp độ S3 (STEP_UP_S3_REQUIRED)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+components:
+  schemas:
+    GradeCalculationRequest:
+      type: object
+      required: [student_code, class_id, tx1, midterm, final_exam]
+      properties:
+        student_code:
+          type: string
+          example: "HS001"
+        class_id:
+          type: string
+          example: "10A1"
+        tx1:
+          type: number
+          minimum: 0
+          maximum: 10
+          example: 8.0
+        tx2:
+          type: number
+          minimum: 0
+          maximum: 10
+          example: 7.5
+        exempt_tx2:
+          type: boolean
+          default: false
+        midterm:
+          type: number
+          minimum: 0
+          maximum: 10
+          example: 8.0
+        final_exam:
+          type: number
+          minimum: 0
+          maximum: 10
+          example: 8.2
+    GradeCalculationResponse:
+      type: object
+      required: [student_code, class_id, average_score, academic_rank, formula_version]
+      properties:
+        student_code:
+          type: string
+          example: "HS001"
+        class_id:
+          type: string
+          example: "10A1"
+        average_score:
+          type: number
+          example: 8.0
+        academic_rank:
+          type: string
+          enum: [GIOI, KHA, TRUNG_BINH, YEU]
+          example: "GIOI"
+        formula_version:
+          type: string
+          example: "BR-031-SPEC-003"
+    ApprovalSignResponse:
+      type: object
+      required: [approval_id, status, acr_verified, signed_at]
+      properties:
+        approval_id:
+          type: string
+          example: "CR-GRADE-001"
+        status:
+          type: string
+          enum: [APPROVED, REJECTED]
+          example: "APPROVED"
+        acr_verified:
+          type: string
+          example: "S3"
+        signed_at:
+          type: string
+          format: date-time
+    ProblemDetail:
+      type: object
+      required: [type, title, status, detail, traceId]
+      properties:
+        type:
+          type: string
+          example: "https://authshield.edu.vn/errors/forbidden"
+        title:
+          type: string
+          example: "Forbidden"
+        status:
+          type: integer
+          example: 403
+        detail:
+          type: string
+          example: "Teacher is not assigned to class 10A2 or ACR S3 required."
+        error_code:
+          type: string
+          example: "STEP_UP_S3_REQUIRED"
+        traceId:
+          type: string
+          example: "tr-981234abcdef"

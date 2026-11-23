@@ -1,0 +1,42 @@
+{
+  "role": "Reviewer",
+  "policy_version": "POLICY-001",
+  "permissions": {
+    "allow": [
+      "Read(./docs/**)",
+      "Read(./api/**)",
+      "Read(./backend/**)",
+      "Read(./frontend/**)",
+      "Read(./tests/**)",
+      "Grep(*)",
+      "Glob(*)"
+    ],
+    "deny": [
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyWrite": [
+        "./"
+      ],
+      "denyRead": [
+        "./.env",
+        "./secrets",
+        "~/.ssh"
+      ]
+    },
+    "network": {
+      "allowedDomains": []
+    }
+  }
+}

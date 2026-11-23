@@ -1,0 +1,12 @@
+{
+  "request_id": "CR-US-012-001",
+  "task_id": "TASK-US-012-BE",
+  "type": "SPEC_QUESTION",
+  "target_owner": "BA",
+  "baseline": "SPEC-003",
+  "reference": "BR-031 / AC-012-04",
+  "problem": "Chưa có quy tắc cho trường hợp trọng số bằng 0.",
+  "evidence": ["docs/spec/rules/BR-031.md"],
+  "proposed_action": "PO xác nhận hành vi và ví dụ kỳ vọng; Tester cập nhật test nếu cần.",
+  "blocked_tasks": ["TASK-US-012-BE"]
+}

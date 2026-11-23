@@ -1,0 +1,52 @@
+{
+  "role": "FE_Dev",
+  "policy_version": "POLICY-001",
+  "permissions": {
+    "allow": [
+      "Bash(npm test *)",
+      "Bash(npm run build)",
+      "Bash(python tools/mocker/contract_mocker.py *)",
+      "Bash(git diff *)",
+      "Bash(git status)",
+      "Edit(./frontend/**)",
+      "Edit(./app/**)",
+      "Edit(./requests/**)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "Edit(./backend/**)",
+      "Edit(./tests/acceptance/**)",
+      "Edit(./api/**)",
+      "Edit(./docs/**)",
+      "Edit(./.agent-policy/**)",
+      "Bash(git push *)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyWrite": [
+        "./backend",
+        "./tests/acceptance",
+        "./api",
+        "./docs",
+        "./.agent-policy"
+      ],
+      "denyRead": [
+        "./.env",
+        "./secrets",
+        "~/.ssh"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "nexus.noibo.example"
+      ]
+    }
+  }
+}

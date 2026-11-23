@@ -1,0 +1,52 @@
+{
+  "role": "BE_Dev",
+  "policy_version": "POLICY-001",
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw *)",
+      "Bash(git diff *)",
+      "Bash(git status)",
+      "Edit(./backend/**)",
+      "Edit(./src/**)",
+      "Edit(./requests/**)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "Edit(./tests/acceptance/**)",
+      "Edit(./api/**)",
+      "Edit(./docs/**)",
+      "Edit(./.claude/**)",
+      "Edit(./runtime-config/**)",
+      "Edit(./.agent-policy/**)",
+      "Bash(git push *)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyWrite": [
+        "./tests/acceptance",
+        "./api",
+        "./docs",
+        "./.claude",
+        "./runtime-config",
+        "./.agent-policy"
+      ],
+      "denyRead": [
+        "./.env",
+        "./secrets",
+        "~/.ssh"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "nexus.noibo.example"
+      ]
+    }
+  }
+}

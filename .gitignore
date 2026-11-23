@@ -46,3 +46,12 @@ logs/
 # Temporary files
 tmp/
 scratch/
+
+# AI-Agent V2.1 Local Controller DB, Reports & CodeGraph
+__pycache__/
+*.py[cod]
+.codegraph/
+repomix-output.xml
+.pipeline/controller.db
+reports/
+

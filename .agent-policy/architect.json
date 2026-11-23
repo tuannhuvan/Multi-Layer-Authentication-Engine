@@ -1,0 +1,47 @@
+{
+  "role": "Architect",
+  "policy_version": "POLICY-001",
+  "permissions": {
+    "allow": [
+      "Read(./docs/**)",
+      "Read(./api/**)",
+      "Read(./backend/**)",
+      "Read(./frontend/**)",
+      "Edit(./docs/adr/**)",
+      "Edit(./docs/design/**)",
+      "Edit(./docs/trace/**)",
+      "Edit(./api/**)",
+      "Edit(./requests/**)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "Edit(./backend/**)",
+      "Edit(./frontend/**)",
+      "Edit(./tests/acceptance/**)",
+      "Edit(./.agent-policy/**)",
+      "Bash(git push *)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyWrite": [
+        "./backend",
+        "./frontend",
+        "./tests/acceptance",
+        "./.agent-policy"
+      ],
+      "denyRead": [
+        "./.env",
+        "./secrets",
+        "~/.ssh"
+      ]
+    },
+    "network": {
+      "allowedDomains": []
+    }
+  }
+}

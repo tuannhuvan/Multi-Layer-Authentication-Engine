@@ -1,0 +1,6 @@
+case_id,student_code,class_id,tx1,tx2,midterm,final_exam,exempt_tx2,expected_avg,expected_rank,acr_required
+GOLDEN-01,HS001,10A1,8.0,7.5,8.0,8.2,false,8.0,GIOI,S2
+GOLDEN-02,HS002,10A1,7.9,7.9,7.9,8.0,false,7.9,KHA,S2
+GOLDEN-03,HS003,10A1,6.5,6.0,6.5,6.5,false,6.4,TRUNG_BINH,S2
+GOLDEN-04,HS004,10A1,8.0,0.0,8.0,8.0,true,8.0,GIOI,S2
+GOLDEN-05,HS005,10A1,5.0,4.5,5.0,5.0,false,4.9,YEU,S2

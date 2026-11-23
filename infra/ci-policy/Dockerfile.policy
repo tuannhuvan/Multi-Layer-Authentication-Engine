@@ -1,0 +1,12 @@
+# Trusted CI Policy Image (§14.1, §14.2)
+# Build & pin by digest in CI_POLICY_IMAGE
+FROM python:3.12-slim
+
+WORKDIR /opt/ai-policy
+COPY .agent-policy/ /opt/ai-policy/policy/
+COPY tools/ /opt/ai-policy/tools/
+COPY infra/ci-policy/policy_cli.py /opt/ai-policy/policy_cli.py
+COPY infra/ci-policy/bin/ /opt/ai-policy/bin/
+
+RUN chmod +x /opt/ai-policy/bin/*
+ENV PATH="/opt/ai-policy/bin:${PATH}"

@@ -1,0 +1,45 @@
+{
+  "role": "BA",
+  "policy_version": "POLICY-001",
+  "permissions": {
+    "allow": [
+      "Read(./docs/**)",
+      "Edit(./docs/spec/**)",
+      "Edit(./requests/**)"
+    ],
+    "deny": [
+      "Bash(*)",
+      "Read(./.env*)",
+      "Read(./secrets/**)",
+      "Edit(./backend/**)",
+      "Edit(./frontend/**)",
+      "Edit(./api/**)",
+      "Edit(./tests/**)",
+      "Edit(./.agent-policy/**)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyWrite": [
+        "./backend",
+        "./frontend",
+        "./api",
+        "./tests",
+        "./.agent-policy"
+      ],
+      "denyRead": [
+        "./.env",
+        "./secrets",
+        "~/.ssh"
+      ]
+    },
+    "network": {
+      "allowedDomains": []
+    }
+  }
+}

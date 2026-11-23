@@ -1,0 +1,20 @@
+{
+  "runtime_adapter": "claude-code",
+  "pinned_runtime_version": "1.0.42",
+  "policy_version": "POLICY-001",
+  "roles": {
+    "BA": { "model": "claude-3-7-opus-pinned", "policy": ".agent-policy/ba.json" },
+    "Architect": { "model": "claude-3-7-opus-pinned", "policy": ".agent-policy/architect.json" },
+    "Tester": { "model": "claude-3-7-sonnet-pinned", "policy": ".agent-policy/tester.json" },
+    "BE_Dev": { "model": "claude-3-7-sonnet-pinned", "policy": ".agent-policy/be-dev.json" },
+    "FE_Dev": { "model": "claude-3-7-sonnet-pinned", "policy": ".agent-policy/fe-dev.json" },
+    "DevOps": { "model": "claude-3-5-haiku-pinned", "policy": ".agent-policy/devops.json" },
+    "Biz_Reviewer": { "model": "claude-3-7-opus-pinned", "policy": ".agent-policy/reviewer.json" },
+    "Sec_Reviewer": { "model": "claude-3-7-sonnet-pinned", "policy": ".agent-policy/reviewer.json" }
+  },
+  "data_governance": {
+    "classification_levels": ["PUBLIC", "INTERNAL", "SENSITIVE", "RESTRICTED_NO_EGRESS"],
+    "cleanupPeriodDays": 30,
+    "allow_real_pii_in_context": false
+  }
+}
