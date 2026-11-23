@@ -16,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "tools" / "mocker"))
 
 from contract_mocker import (  # noqa: E402
+    MOCK_DB,
     calculate_grade,
     sign_approval_s3,
     verify_unit_scope_and_acr,
@@ -91,6 +92,24 @@ class TestUS012Acceptance(unittest.TestCase):
         )
         self.assertEqual(result["average_score"], 8.0)
         self.assertEqual(result["academic_rank"], "GIOI")
+
+    def test_ac012_05_worm_hmac_chain_integrity(self):
+        """SoD-03 (PH6): Verify WORM Audit Log HMAC-SHA256 hash chain links prev_hmac_hash -> entry_hmac_hash."""
+        self.assertGreaterEqual(len(MOCK_DB.worm_logs), 2)
+        self.assertEqual(MOCK_DB.worm_logs[0]["prev_hmac_hash"], "0" * 64)
+        self.assertEqual(MOCK_DB.worm_logs[1]["prev_hmac_hash"], MOCK_DB.worm_logs[0]["entry_hmac_hash"])
+        rec3 = MOCK_DB.append_worm_log(
+            actor_user_id="22222222-3333-4444-5555-666666666602",
+            actor_role="BOARD",
+            acr_level="S3",
+            subsystem_code="PH4_EXAM",
+            use_case_code="UC-BRD-06",
+            action_type="UNLOCK_MAKER_CHECKER_24H",
+            target_table="grade_appeals",
+            target_record_id="GA-2026-089",
+            after_state={"window_hours": 24},
+        )
+        self.assertEqual(rec3["prev_hmac_hash"], MOCK_DB.worm_logs[1]["entry_hmac_hash"])
 
 
 if __name__ == "__main__":

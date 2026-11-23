@@ -1,7 +1,7 @@
 {
   "manifest_version": "V2.1",
-  "generated_at": "2026-11-23T17:11:57.114504+00:00",
-  "baseline_manifest_sha256": "41a885c337a3e96ee1784ebaacaf5f40d85ab73820c39328ec553faef840b04c",
+  "generated_at": "2026-11-23T17:35:12.642449+00:00",
+  "baseline_manifest_sha256": "3560063d5bbe29367d13ca68d3a65e89d1474d424aa8a9fefd294817b664b248",
   "baselines": {
     "spec": {
       "baseline_id": "SPEC-003",
@@ -14,16 +14,16 @@
     },
     "contract": {
       "baseline_id": "API-002",
-      "sha256": "b9b261eaaa41d01faf82c2ed7ee27ad17b01c130e44aa3f35030a22b3839d25f",
+      "sha256": "f36f45d54284e49eb7a1ff2979280e1dad82a1ddcd0e7a8844c16a42e8847992",
       "files": {
-        "api/openapi.yaml": "4728373333992831c2b67bf85e76b8d506be088c0da9fe1c6ee4ed0c8f574ad3"
+        "api/openapi.yaml": "ca897f15288755d0c00248efa38bed51b7c0404a724279ea2b19cbdc4af3d0bb"
       }
     },
     "test": {
       "baseline_id": "TEST-US-012-004",
-      "sha256": "41c19344017147aeb4d72fbf6af861d14d43e2faaf01a4a5e7a866aea2881788",
+      "sha256": "0f27a9d529161944876443a5f12002630d622a9ab1a2a4ea370732155ee26294",
       "files": {
-        "tests/acceptance/test_us012_grades.py": "b24010983dd8ef7fa7b260f18d7e5ff3e325b690bc796b17e3139d1faa71644c",
+        "tests/acceptance/test_us012_grades.py": "67bd676e316c00f09270dd08547eb3e8294e8a0e002eb12f5defc592008b2fbc",
         "tests/fixtures/us012_fixtures.json": "c5998cc4a50844e5b5a2b6fa607318077abd517dd16e223c3437f525b66504ec",
         "tests/plans/US-012-test-plan.md": "d783a56022595b4128b0ecaf52a21ac6efc3f3e1177fd04c08f2e98acbbe149e"
       }

@@ -1,0 +1,19 @@
+name: authshield_lms_mobile
+description: Ứng dụng Di động Học đường AuthShield-LMS (Flutter - Android Studio) kết nối Cổng Xác thực Đa tầng SSO-MFA (S1/S2/S3) & Contract Mocker.
+publish_to: 'none'
+version: 2.1.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

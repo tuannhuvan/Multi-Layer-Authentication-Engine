@@ -1,19 +1,158 @@
 openapi: 3.0.3
 info:
-  title: AuthShield-LMS Multi-Layer Authentication & School Service API
+  title: AuthShield-LMS Multi-Layer Authentication & School Service API (6 Subsystems)
   version: "API-002"
   description: |
-    Contract baseline API-002 cho quy trình AI-Agent V2.1.
-    Mọi lỗi nghiệp vụ và phân quyền đều trả về theo chuẩn RFC 9457 ProblemDetail.
+    Contract baseline API-002 cho quy trình AI-Agent V2.1 & Đặc tả AuthShield-LMS (PH1..PH6):
+    - 4 Nhóm vai trò cốt lõi (ROLE_ADMIN, ROLE_BOARD, ROLE_TEACHER, ROLE_STUDENT) + Workspace Switcher
+    - Xác thực đa tầng ACR (S1, S2, S3 Soft-HSM/FIDO2) & Khóa lũy tiến (423 Locked)
+    - Chốt chặn Anti-IDOR Guard & Phân tách nhiệm vụ SoD-01, SoD-02 (Maker-Checker 24h), SoD-03 (WORM HMAC Chain)
+    - Mọi lỗi nghiệp vụ và phân quyền đều trả về theo chuẩn RFC 9457 ProblemDetail kèm traceId.
 servers:
-  - url: http://localhost:8080
-    description: Local API Gateway / Contract Mocker Server
+  - url: http://localhost:18080
+    description: Local API Gateway / Contract Mocker Server (CORS Enabled for Web & Android Emulator 10.0.2.2:18080)
 paths:
+  /api/auth/login:
+    post:
+      operationId: loginSso
+      summary: UC-01 Đăng nhập SSO OIDC PKCE & Khóa lũy tiến
+      tags: [PH1_Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: "gv_kiem_pho_ht_01" }
+                password: { type: string, example: "AuthShield@2026" }
+                otp_code: { type: string, example: "123456" }
+      responses:
+        "200":
+          description: Đăng nhập SSO thành công, trả Context JWT & thông tin phiên
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "423":
+          description: Tài khoản bị khóa lũy tiến (Progressive Lockout)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/auth/switch-context:
+    post:
+      operationId: switchWorkspaceContext
+      summary: UC-04 Chuyển đổi góc làm việc (Workspace Switcher) cho người kiêm nhiệm
+      tags: [PH1_Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_workspace]
+              properties:
+                username: { type: string, example: "gv_kiem_pho_ht_01" }
+                target_workspace:
+                  type: string
+                  enum: [ADMIN, BOARD, TEACHER, STUDENT]
+      responses:
+        "200":
+          description: Đã cấp Context Token mới với active_scope tương ứng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "403":
+          description: Tài khoản không sở hữu vai trò tương ứng với góc làm việc yêu cầu
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/auth/step-up/s3:
+    post:
+      operationId: stepUpAcrS3
+      summary: UC-02 Nâng cấp xác thực lên mức ACR=S3 (Soft-HSM PIN / FIDO2 Passkey)
+      tags: [PH1_Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method, pin_or_passkey, action_context]
+              properties:
+                username: { type: string, example: "gv_kiem_pho_ht_01" }
+                method: { type: string, enum: [SOFT_HSM_S3, FIDO2_PKI_S3] }
+                pin_or_passkey: { type: string, example: "888888" }
+                action_context: { type: string, example: "APPEAL_APPROVE_S3" }
+      responses:
+        "200":
+          description: Đã ký số S3 và nâng cấp phiên lên ACR=S3
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_acr: { type: string, example: "S3" }
+                  s3_signature: { type: string }
+                  step_up_s3_expires_at: { type: string, format: date-time }
+  /api/v1/admin/overview:
+    get:
+      operationId: getAdminOverview
+      summary: UC-ADM-01..16 Lấy cấu hình năm học, danh sách tài khoản, cổng ngoại vi & WORM Audit Logs
+      tags: [PH2_Admin]
+      responses:
+        "200":
+          description: Dữ liệu tổng quan Admin Portal
+  /api/v1/admin/audit-logs:
+    get:
+      operationId: getWormAuditLogs
+      summary: UC-08, UC-ADM-13 Tra cứu kho Nhật ký Kiểm toán Bất biến WORM (HMAC-SHA256 Chain, SoD-03 Read-Only)
+      tags: [PH6_WORM_Audit]
+      responses:
+        "200":
+          description: Danh sách chuỗi băm WORM Audit Logs
+  /api/v1/board/statistics:
+    get:
+      operationId: getBoardStatistics
+      summary: UC-09, UC-BRD-01..14 Dashboard giám sát toàn trường, danh sách đơn phúc khảo chờ duyệt, học bạ S3 & đồng bộ MOET
+      tags: [PH6_Board]
+      responses:
+        "200":
+          description: Thống kê toàn trường cho Ban Lãnh đạo
+  /api/v1/board/appeals/approve:
+    post:
+      operationId: approveGradeAppealChecker
+      summary: UC-11, UC-BRD-06 Ban Lãnh đạo (Checker) phê duyệt mở khóa sửa điểm 24h (Yêu cầu ACR=S3 & SoD-02 maker_id != checker_id)
+      tags: [PH4_Grades_Appeals]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [appeal_id, decision]
+              properties:
+                appeal_id: { type: string, example: "GA-2026-089" }
+                decision: { type: string, enum: [APPROVED, REJECTED] }
+                checker_id: { type: string }
+      responses:
+        "200":
+          description: Đã mở khóa sửa điểm trong cửa sổ 24 giờ và ghi vết chữ ký kép vào WORM
+        "403":
+          description: Thiếu ACR=S3 hoặc vi phạm SoD-02 (Maker == Checker)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
   /api/v1/grades/calculate:
     post:
       operationId: calculateSemesterGrade
       summary: Tính điểm trung bình môn và xếp loại theo BR-031
-      tags: [Grades]
+      tags: [PH4_Grades_Appeals]
       requestBody:
         required: true
         content:
@@ -27,17 +166,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GradeCalculationResponse"
-        "400":
-          description: Dữ liệu đầu vào không hợp lệ
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetail"
   /api/v1/classes/{classId}/grades:
     put:
       operationId: updateClassGrades
-      summary: Giáo viên cập nhật điểm lớp được phân công (Yêu cầu ACR >= S2)
-      tags: [Grades]
+      summary: Giáo viên cập nhật điểm lớp được phân công (Yêu cầu ACR >= S2 & Anti-IDOR Data Scope)
+      tags: [PH4_Grades_Appeals]
       parameters:
         - name: classId
           in: path
@@ -69,7 +202,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GradeCalculationResponse"
         "403":
-          description: Vi phạm phân quyền đơn vị (Anti-IDOR) hoặc thiếu cấp độ xác thực ACR
+          description: Vi phạm phân quyền đơn vị (Anti-IDOR) hoặc SoD-01 hoặc thiếu cấp độ xác thực ACR
           content:
             application/problem+json:
               schema:
@@ -78,7 +211,7 @@ paths:
     post:
       operationId: signGradeChangeApproval
       summary: Ban Giám hiệu ký số S3 phê duyệt sửa điểm sau khóa sổ (Maker-Checker)
-      tags: [Approvals]
+      tags: [PH4_Grades_Appeals]
       parameters:
         - name: approvalId
           in: path
@@ -104,97 +237,86 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/v1/student/assignments/{assignmentId}/submit:
+    post:
+      operationId: submitStudentAssignment
+      summary: UC-20, UC-STU-07 Nộp bài tập, kiểm soát số lượt nộp (max_attempts) & tự động tính phạt nộp muộn (Hình 9)
+      tags: [PH5_Student_LMS_Finance]
+      parameters:
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Nộp bài thành công kèm mã băm SHA-256 và thông tin phạt muộn (nếu có)
+        "400":
+          description: Vượt quá số lượt nộp tối đa (max_attempts)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
 components:
   schemas:
+    AuthSessionResponse:
+      type: object
+      required: [user_id, username, full_name, roles, active_scope, current_acr, access_token]
+      properties:
+        user_id: { type: string, example: "8f14e45f-ceea-467a-a830-15b3a7490101" }
+        username: { type: string, example: "gv_kiem_pho_ht_01" }
+        full_name: { type: string, example: "TS. Nguyễn Văn Minh (Phó HT kiêm GV Toán)" }
+        roles:
+          type: array
+          items: { type: string }
+          example: ["ROLE_BOARD", "ROLE_TEACHER"]
+        active_scope: { type: string, example: "TEACHER" }
+        current_acr: { type: string, example: "S2" }
+        assigned_classes:
+          type: array
+          items: { type: string }
+          example: ["12A1", "10A1"]
+        homeroom_class: { type: string, example: "12A1" }
+        teacher_type: { type: string, example: "REGULAR" }
+        access_token: { type: string }
     GradeCalculationRequest:
       type: object
       required: [student_code, class_id, tx1, midterm, final_exam]
       properties:
-        student_code:
-          type: string
-          example: "HS001"
-        class_id:
-          type: string
-          example: "10A1"
-        tx1:
-          type: number
-          minimum: 0
-          maximum: 10
-          example: 8.0
-        tx2:
-          type: number
-          minimum: 0
-          maximum: 10
-          example: 7.5
-        exempt_tx2:
-          type: boolean
-          default: false
-        midterm:
-          type: number
-          minimum: 0
-          maximum: 10
-          example: 8.0
-        final_exam:
-          type: number
-          minimum: 0
-          maximum: 10
-          example: 8.2
+        student_code: { type: string, example: "HS001" }
+        class_id: { type: string, example: "10A1" }
+        tx1: { type: number, minimum: 0, maximum: 10, example: 8.0 }
+        tx2: { type: number, minimum: 0, maximum: 10, example: 7.5 }
+        exempt_tx2: { type: boolean, default: false }
+        midterm: { type: number, minimum: 0, maximum: 10, example: 8.0 }
+        final_exam: { type: number, minimum: 0, maximum: 10, example: 8.2 }
     GradeCalculationResponse:
       type: object
       required: [student_code, class_id, average_score, academic_rank, formula_version]
       properties:
-        student_code:
-          type: string
-          example: "HS001"
-        class_id:
-          type: string
-          example: "10A1"
-        average_score:
-          type: number
-          example: 8.0
+        student_code: { type: string, example: "HS001" }
+        class_id: { type: string, example: "10A1" }
+        average_score: { type: number, example: 8.0 }
         academic_rank:
           type: string
           enum: [GIOI, KHA, TRUNG_BINH, YEU]
           example: "GIOI"
-        formula_version:
-          type: string
-          example: "BR-031-SPEC-003"
+        formula_version: { type: string, example: "BR-031-SPEC-003" }
     ApprovalSignResponse:
       type: object
       required: [approval_id, status, acr_verified, signed_at]
       properties:
-        approval_id:
-          type: string
-          example: "CR-GRADE-001"
-        status:
-          type: string
-          enum: [APPROVED, REJECTED]
-          example: "APPROVED"
-        acr_verified:
-          type: string
-          example: "S3"
-        signed_at:
-          type: string
-          format: date-time
+        approval_id: { type: string, example: "CR-GRADE-001" }
+        status: { type: string, enum: [APPROVED, REJECTED], example: "APPROVED" }
+        acr_verified: { type: string, example: "S3" }
+        signed_at: { type: string, format: date-time }
     ProblemDetail:
       type: object
       required: [type, title, status, detail, traceId]
       properties:
-        type:
-          type: string
-          example: "https://authshield.edu.vn/errors/forbidden"
-        title:
-          type: string
-          example: "Forbidden"
-        status:
-          type: integer
-          example: 403
-        detail:
-          type: string
-          example: "Teacher is not assigned to class 10A2 or ACR S3 required."
-        error_code:
-          type: string
-          example: "STEP_UP_S3_REQUIRED"
-        traceId:
-          type: string
-          example: "tr-981234abcdef"
+        type: { type: string, example: "https://authshield.edu.vn/errors/forbidden" }
+        title: { type: string, example: "Forbidden" }
+        status: { type: integer, example: 403 }
+        detail: { type: string, example: "Teacher is not assigned to class 12A2 or ACR S3 required." }
+        error_code: { type: string, example: "STEP_UP_S3_REQUIRED" }
+        traceId: { type: string, example: "tr-981234abcdef" }

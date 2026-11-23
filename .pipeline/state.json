@@ -10,7 +10,7 @@
     "ui": "UI-002",
     "policy": "POLICY-001"
   },
-  "baseline_manifest_sha256": "41a885c337a3e96ee1784ebaacaf5f40d85ab73820c39328ec553faef840b04c",
+  "baseline_manifest_sha256": "3560063d5bbe29367d13ca68d3a65e89d1474d424aa8a9fefd294817b664b248",
   "active_run_id": "RUN-US-012-P5-001",
   "risk_level": "HIGH",
   "functional_attempts": 1,
